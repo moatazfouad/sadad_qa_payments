@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:pay/pay.dart';
+// import 'package:pay/pay.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sadad_qa_payments/apputils/app_formatter.dart';
 import 'package:sadad_qa_payments/apputils/appassets.dart';
@@ -491,7 +491,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           Center(child: Image.asset(AssetPath.applePay, package: 'sadad_qa_payments', height: 22)),
                     ),
                   )
-                :
+                : const SizedBox.shrink(),
                 // Google pay Dev testSPSQNB01
                 // Google pay Live SPSQNB01
 
@@ -503,292 +503,292 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 //"environment":"PRODUCTION",
 
                 ///////////////
-                widget.packageMode == PackageMode.release ?
-                GooglePayButton(
-                    height: useMobileLayout ? 50 : 65,
-                    width: MediaQuery.of(context).size.width - (useMobileLayout ? 80 : 124),
-                    paymentConfiguration: PaymentConfiguration.fromJsonString('''{
-   "provider":"google_pay",
-   "data":{
-      "environment":"PRODUCTION",
-      "apiVersion":2,
-      "apiVersionMinor":0,
-      "merchantInfo": {
-         "merchantId": "$googleMerchantid",
-         "merchantName": "$googleMerchantName"
-      },
-      "allowedPaymentMethods":[
-         {
-            "type":"CARD",
-            "tokenizationSpecification":{
-               "type":"PAYMENT_GATEWAY",
-               "parameters":{
-                  "gateway":"mpgs",
-                  "gatewayMerchantId":"SPSQNB01"
-               }
-            },
-            "parameters":{
-               "allowedCardNetworks":[
-                  "VISA",
-                  "MASTERCARD"
-               ],
-               "allowedAuthMethods":[
-                  "PAN_ONLY",
-                  "CRYPTOGRAM_3DS"
-               ],
-               "billingAddressRequired":false,
-               "billingAddressParameters":{
-                  "format":"FULL",
-                  "phoneNumberRequired":true
-               }
-            }
-         }
-      ],
-      "transactionInfo":{
-         "countryCode":"QA",
-         "currencyCode":"QAR"
-      }
-   }
-}'''),
-                    paymentItems: [
-                      PaymentItem(
-                        label: "Total".translate(),
-                        amount: widget.amount.toString() ?? "",
-                        status: PaymentItemStatus.final_price,
-                        type: PaymentItemType.total,
-                      )
-                    ],
-                    type: GooglePayButtonType.plain,
-                    margin: EdgeInsets.symmetric(horizontal: useMobileLayout ? 20 : 62),
-                    onPaymentResult: (result) async {
-                      AppDialog.showProcess(context, widget.themeColor ?? primaryColor);
-                      var tokenData = result["paymentMethodData"]["tokenizationData"]["token"];
-                      String? ipAddress = await NetworkInfo().getWifiIPv6();
-                      double amount = widget.amount ?? 0;
-                      int finalamount = (amount * 100).toInt();
-                      String cardHolderName = "" ?? "";
-                      String firstName = "";
-                      String lastName = "";
-                      String country = "";
-                      String emailId = widget.email ?? "";
-                      String cellNo = widget.mobile ?? "";
-                      //String checkSumLocal = checkSum;
-                      // As per basecamp requirement remove checksum from Rishabh
-                      String merchantID = userMetaPreference?.userId ?? ""; //"9246722"
-                      String merchantSadadID = userMetaPreference?.user?.sadadId ?? ""; //"9246722";
-                      var strProductDetails = jsonEncode(widget.productDetail);
-                      strProductDetails = strProductDetails.replaceAll("(", "[");
-                      strProductDetails = strProductDetails.replaceAll(")", "]");
-                      strProductDetails = strProductDetails.replaceAll("\n", "");
-                      var lang = selectedLanguage.languageCode == "en" ? "en" : "ar";
-                      var postString =
-                          "issandboxmode=${(widget.packageMode == PackageMode.debug) ? "1" : "0"}&isLanguage=$lang&website_ref_no_credit=${widget.orderId}&isFlutter=1&vpc_Version=1&mobileOS=${Platform.isIOS ? "1" : "2"}&vpc_Command=pay&paymentToken=$tokenData&walletProvider=GOOGLE_PAY&vpc_Merchant=DB93443&vpc_AccessCode=F4996AF0&vpc_OrderInfo=TestOrder&vpc_Amount=$finalamount&vpc_Currency=QAR&vpc_TicketNo=6AQ89F3&vpc_ReturnURL=https://sadad.de/bankapi/25/PHP_VPC_3DS2.5 Party_DR.php&vpc_Gateway=ssl&vpc_MerchTxnRef=${""}&credit_phoneno_hidden=$country&credit_email_hidden=$country&productamount=$finalamount&vendorId=$merchantID&merchant_code=$merchantSadadID&website_ref_no=$country&return_url=$country&transactionEntityId=9&ipAddress=$ipAddress&firstName=$firstName&lastName=$lastName&nameOnCard=$cardHolderName&email=$emailId&mobilePhone=$cellNo&productdetail=$strProductDetails&paymentCode=${widget.token}";
-
-                      var temp = CryptLib.instance.encryptPlainTextWithRandomIV(postString, "XDRvx?#Py^5V@3jC");
-                      String encodedString = base64.encode(utf8.encode(temp)).trim();
-
-                      var htmlString2 = await AppServices.googlePayment(encrypt_string: encodedString);
-                      Navigator.pop(context);
-
-    if (htmlString2.toString().contains("<div")) {
-                        //if(true) {
-                        WebViewDetailsModel webViewDetailsModel = WebViewDetailsModel(
-                          themeColor: widget.themeColor ?? primaryColor,
-                          merchantSadadId: userMetaPreference?.user?.sadadId,
-                          checksum: checkSum,
-                          merchantUserId: userMetaPreference?.userId,
-                          cardHolderName: "cardholdername",
-                          email: widget.email,
-                          paymentMethod: "googlePay",
-                          contactNumber: widget.mobile,
-                          transactionAmount: widget.amount,
-                          productDetail: widget.productDetail,
-                          transactionId: "",
-                          token: widget.token,
-                          htmlString:htmlString2,//htmlString?["msg"],
-                        );
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (context) {
-                            return PaymentWebViewScreen(webViewDetailsModel: webViewDetailsModel);
-                          },
-                        ));
-                      } else {
-                        AppDialog.commonWarningDialog(
-                            themeColor: widget.themeColor ?? AppColors.primaryColor,
-                            useMobileLayout: useMobileLayout,
-                            context: context,
-                            title: "Issue".translate(),
-                            subTitle:
-                                "Sorry, We are not able to process the transaction. Please try again.".translate(),
-                            buttonOnTap: () {
-                              Navigator.pop(context);
-                              },
-                            buttonText: "Okay".translate());
-                      }
-                    },
-                    loadingIndicator: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ) : GooglePayButton(
-                  height: useMobileLayout ? 50 : 65,
-                  width: MediaQuery.of(context).size.width - (useMobileLayout ? 80 : 124),
-                  paymentConfiguration: PaymentConfiguration.fromJsonString('''{
-   "provider":"google_pay",
-   "data":{
-      "environment":"TEST",
-      "apiVersion":2,
-      "apiVersionMinor":0,
-      "allowedPaymentMethods":[
-         {
-            "type":"CARD",
-            "tokenizationSpecification":{
-               "type":"PAYMENT_GATEWAY",
-               "parameters":{
-                  "gateway":"mpgs",
-                  "gatewayMerchantId":"testSPSQNB01"
-               }
-            },
-            "parameters":{
-               "allowedCardNetworks":[
-                  "VISA",
-                  "MASTERCARD"
-               ],
-               "allowedAuthMethods":[
-                  "PAN_ONLY",
-                  "CRYPTOGRAM_3DS"
-               ],
-               "billingAddressRequired":false,
-               "billingAddressParameters":{
-                  "format":"FULL",
-                  "phoneNumberRequired":true
-               }
-            }
-         }
-      ],
-      "transactionInfo":{
-         "countryCode":"QA",
-         "currencyCode":"QAR"
-      }
-   }
-}'''),
-                  paymentItems: [
-                    PaymentItem(
-                      label: "Total".translate(),
-                      amount: widget.amount.toString() ?? "",
-                      status: PaymentItemStatus.final_price,
-                      type: PaymentItemType.total,
-                    )
-                  ],
-                  type: GooglePayButtonType.plain,
-                  margin: EdgeInsets.symmetric(horizontal: useMobileLayout ? 20 : 62),
-                  onPaymentResult: (result) async {
-                    AppDialog.showProcess(context, widget.themeColor ?? primaryColor);
-                    var tokenData = result["paymentMethodData"]["tokenizationData"]["token"];
-                    String? ipAddress = await NetworkInfo().getWifiIPv6();
-                    double amount = widget.amount ?? 0;
-                    int finalamount = (amount * 100).toInt();
-                    String cardHolderName = "" ?? "";
-                    String firstName = "";
-                    String lastName = "";
-                    String country = "";
-                    String emailId = widget.email ?? "";
-                    String cellNo = widget.mobile ?? "";
-                    //String checkSumLocal = checkSum;
-                    // As per basecamp requirement remove checksum from Rishabh
-                    String merchantID = userMetaPreference?.userId ?? ""; //"9246722"
-                    String merchantSadadID = userMetaPreference?.user?.sadadId ?? ""; //"9246722";
-                    var strProductDetails = jsonEncode(widget.productDetail);
-                    strProductDetails = strProductDetails.replaceAll("(", "[");
-                    strProductDetails = strProductDetails.replaceAll(")", "]");
-                    strProductDetails = strProductDetails.replaceAll("\n", "");
-                    var lang = selectedLanguage.languageCode == "en" ? "en" : "ar";
-                    var postString =
-                        "issandboxmode=${(widget.packageMode == PackageMode.debug) ? "1" : "0"}&isLanguage=$lang&website_ref_no_credit=${widget.orderId}&isFlutter=1&vpc_Version=1&mobileOS=${Platform.isIOS ? "1" : "2"}&vpc_Command=pay&paymentToken=$tokenData&walletProvider=GOOGLE_PAY&vpc_Merchant=DB93443&vpc_AccessCode=F4996AF0&vpc_OrderInfo=TestOrder&vpc_Amount=$finalamount&vpc_Currency=QAR&vpc_TicketNo=6AQ89F3&vpc_ReturnURL=https://sadad.de/bankapi/25/PHP_VPC_3DS2.5 Party_DR.php&vpc_Gateway=ssl&vpc_MerchTxnRef=${""}&credit_phoneno_hidden=$country&credit_email_hidden=$country&productamount=$finalamount&vendorId=$merchantID&merchant_code=$merchantSadadID&website_ref_no=$country&return_url=$country&transactionEntityId=9&ipAddress=$ipAddress&firstName=$firstName&lastName=$lastName&nameOnCard=$cardHolderName&email=$emailId&mobilePhone=$cellNo&productdetail=$strProductDetails&paymentCode=${widget.token}";
-                    // var temp = CryptLib.instance.encryptPlainTextWithRandomIV(postString, "XDRvx?#Py^5V@3jC");
-                    // String encodedString = base64.encode(utf8.encode(temp)).trim();
-                    // var postString =
-                    //     "is_Flutter=1&vpc_Version=1&deviceIp=$ipAddress&transactionmodeId=5&MID=${userMetaPreference?.user?.sadadId.toString() ?? userMetaPreference?.userId}&vpc_Command=pay&vpc_Merchant=${userMetaPreference?.user?.sadadId.toString()}&vpc_AccessCode=F4996AF0&vpc_MerchTxnRef=6AQ89F3&vpc_OrderInfo=Test Order&vpc_Amount=${widget.amount}&vpc_Currency=QAR&vpc_TicketNo=6AQ89F3&vpc_ReturnURL=https://sadad.de/bankapi/25/PHP_VPC_3DS 2.5 Party_DR.php&vpc_Gateway=ssl&vpc_MerchTxnRef=SD417921222270&transactionEntityId=9&email=demo@gmail.com&mobilePhone=9749898989898&city=&country=&walletProvider=GOOGLE_PAY&paymentToken=$tokenData&carduser_id=${userMetaPreference?.userId}";
-                    var temp = CryptLib.instance.encryptPlainTextWithRandomIV(postString, "XDRvx?#Py^5V@3jC");
-                    String encodedString = base64.encode(utf8.encode(temp)).trim();
-
-                    var htmlString2 = await AppServices.googlePayment(encrypt_string: encodedString);
-                    // Map? htmlString = await AppServices.googlePayCompletion(
-                    //   encodedString: encodedString,
-                    //   googlePayURL: ApiEndPoint.googlePayWebRequest,
-                    // );
-                    Navigator.pop(context);
-                    // if (htmlString == null) {
-                    //   AppDialog.commonWarningDialog(
-                    //       themeColor: widget.themeColor ?? AppColors.primaryColor,
-                    //       useMobileLayout: useMobileLayout,
-                    //       context: context,
-                    //       title: "Issue".translate(),
-                    //       subTitle:
-                    //           "Sorry, We are not able to process the transaction. Please try again.".translate(),
-                    //       buttonOnTap: () {
-                    //         Navigator.pop(context);
-                    //         Navigator.pop(context);
-                    //       },
-                    //       buttonText: "Okay".translate());
-                    // } else {
-                    //   if (htmlString["status"].toString() == "success") {
-                    //webViewString = htmlString["msg"];
-                    //webController.loadHtmlString(webViewString as String);
-                    if (htmlString2.toString().contains("<div")) {
-                      //if(true) {
-                      WebViewDetailsModel webViewDetailsModel = WebViewDetailsModel(
-                        themeColor: widget.themeColor ?? primaryColor,
-                        merchantSadadId: userMetaPreference?.user?.sadadId,
-                        checksum: checkSum,
-                        merchantUserId: userMetaPreference?.userId,
-                        cardHolderName: "cardholdername",
-                        email: widget.email,
-                        paymentMethod: "googlePay",
-                        contactNumber: widget.mobile,
-                        transactionAmount: widget.amount,
-                        productDetail: widget.productDetail,
-                        transactionId: "",
-                        token: widget.token,
-                        htmlString:htmlString2,//htmlString?["msg"],
-                      );
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) {
-                          return PaymentWebViewScreen(webViewDetailsModel: webViewDetailsModel);
-                        },
-                      ));
-                    } else {
-                      AppDialog.commonWarningDialog(
-                          themeColor: widget.themeColor ?? AppColors.primaryColor,
-                          useMobileLayout: useMobileLayout,
-                          context: context,
-                          title: "Issue".translate(),
-                          subTitle:
-                          "Sorry, We are not able to process the transaction. Please try again.".translate(),
-                          buttonOnTap: () {
-                            Navigator.pop(context);
-                          },
-                          buttonText: "Okay".translate());
-                    }
-                    // } else {
-                    //   AppDialog.commonWarningDialog(
-                    //       themeColor: widget.themeColor ?? AppColors.primaryColor,
-                    //       useMobileLayout: useMobileLayout,
-                    //       context: context,
-                    //       title: "Issue".translate(),
-                    //       subTitle: htmlString["msg"].toString(),
-                    //       buttonOnTap: () {
-                    //         Navigator.pop(context);
-                    //         Navigator.pop(context);
-                    //       },
-                    //       buttonText: "Okay".translate());
-                    // }
-                    //}
-                    //print("html String $htmlString");
-                  },
-                  loadingIndicator: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+//                 widget.packageMode == PackageMode.release ?
+//                 GooglePayButton(
+//                     height: useMobileLayout ? 50 : 65,
+//                     width: MediaQuery.of(context).size.width - (useMobileLayout ? 80 : 124),
+//                     paymentConfiguration: PaymentConfiguration.fromJsonString('''{
+//    "provider":"google_pay",
+//    "data":{
+//       "environment":"PRODUCTION",
+//       "apiVersion":2,
+//       "apiVersionMinor":0,
+//       "merchantInfo": {
+//          "merchantId": "$googleMerchantid",
+//          "merchantName": "$googleMerchantName"
+//       },
+//       "allowedPaymentMethods":[
+//          {
+//             "type":"CARD",
+//             "tokenizationSpecification":{
+//                "type":"PAYMENT_GATEWAY",
+//                "parameters":{
+//                   "gateway":"mpgs",
+//                   "gatewayMerchantId":"SPSQNB01"
+//                }
+//             },
+//             "parameters":{
+//                "allowedCardNetworks":[
+//                   "VISA",
+//                   "MASTERCARD"
+//                ],
+//                "allowedAuthMethods":[
+//                   "PAN_ONLY",
+//                   "CRYPTOGRAM_3DS"
+//                ],
+//                "billingAddressRequired":false,
+//                "billingAddressParameters":{
+//                   "format":"FULL",
+//                   "phoneNumberRequired":true
+//                }
+//             }
+//          }
+//       ],
+//       "transactionInfo":{
+//          "countryCode":"QA",
+//          "currencyCode":"QAR"
+//       }
+//    }
+// }'''),
+//                     paymentItems: [
+//                       PaymentItem(
+//                         label: "Total".translate(),
+//                         amount: widget.amount.toString() ?? "",
+//                         status: PaymentItemStatus.final_price,
+//                         type: PaymentItemType.total,
+//                       )
+//                     ],
+//                     type: GooglePayButtonType.plain,
+//                     margin: EdgeInsets.symmetric(horizontal: useMobileLayout ? 20 : 62),
+//                     onPaymentResult: (result) async {
+//                       AppDialog.showProcess(context, widget.themeColor ?? primaryColor);
+//                       var tokenData = result["paymentMethodData"]["tokenizationData"]["token"];
+//                       String? ipAddress = await NetworkInfo().getWifiIPv6();
+//                       double amount = widget.amount ?? 0;
+//                       int finalamount = (amount * 100).toInt();
+//                       String cardHolderName = "" ?? "";
+//                       String firstName = "";
+//                       String lastName = "";
+//                       String country = "";
+//                       String emailId = widget.email ?? "";
+//                       String cellNo = widget.mobile ?? "";
+//                       //String checkSumLocal = checkSum;
+//                       // As per basecamp requirement remove checksum from Rishabh
+//                       String merchantID = userMetaPreference?.userId ?? ""; //"9246722"
+//                       String merchantSadadID = userMetaPreference?.user?.sadadId ?? ""; //"9246722";
+//                       var strProductDetails = jsonEncode(widget.productDetail);
+//                       strProductDetails = strProductDetails.replaceAll("(", "[");
+//                       strProductDetails = strProductDetails.replaceAll(")", "]");
+//                       strProductDetails = strProductDetails.replaceAll("\n", "");
+//                       var lang = selectedLanguage.languageCode == "en" ? "en" : "ar";
+//                       var postString =
+//                           "issandboxmode=${(widget.packageMode == PackageMode.debug) ? "1" : "0"}&isLanguage=$lang&website_ref_no_credit=${widget.orderId}&isFlutter=1&vpc_Version=1&mobileOS=${Platform.isIOS ? "1" : "2"}&vpc_Command=pay&paymentToken=$tokenData&walletProvider=GOOGLE_PAY&vpc_Merchant=DB93443&vpc_AccessCode=F4996AF0&vpc_OrderInfo=TestOrder&vpc_Amount=$finalamount&vpc_Currency=QAR&vpc_TicketNo=6AQ89F3&vpc_ReturnURL=https://sadad.de/bankapi/25/PHP_VPC_3DS2.5 Party_DR.php&vpc_Gateway=ssl&vpc_MerchTxnRef=${""}&credit_phoneno_hidden=$country&credit_email_hidden=$country&productamount=$finalamount&vendorId=$merchantID&merchant_code=$merchantSadadID&website_ref_no=$country&return_url=$country&transactionEntityId=9&ipAddress=$ipAddress&firstName=$firstName&lastName=$lastName&nameOnCard=$cardHolderName&email=$emailId&mobilePhone=$cellNo&productdetail=$strProductDetails&paymentCode=${widget.token}";
+//
+//                       var temp = CryptLib.instance.encryptPlainTextWithRandomIV(postString, "XDRvx?#Py^5V@3jC");
+//                       String encodedString = base64.encode(utf8.encode(temp)).trim();
+//
+//                       var htmlString2 = await AppServices.googlePayment(encrypt_string: encodedString);
+//                       Navigator.pop(context);
+//
+//     if (htmlString2.toString().contains("<div")) {
+//                         //if(true) {
+//                         WebViewDetailsModel webViewDetailsModel = WebViewDetailsModel(
+//                           themeColor: widget.themeColor ?? primaryColor,
+//                           merchantSadadId: userMetaPreference?.user?.sadadId,
+//                           checksum: checkSum,
+//                           merchantUserId: userMetaPreference?.userId,
+//                           cardHolderName: "cardholdername",
+//                           email: widget.email,
+//                           paymentMethod: "googlePay",
+//                           contactNumber: widget.mobile,
+//                           transactionAmount: widget.amount,
+//                           productDetail: widget.productDetail,
+//                           transactionId: "",
+//                           token: widget.token,
+//                           htmlString:htmlString2,//htmlString?["msg"],
+//                         );
+//                         Navigator.push(context, MaterialPageRoute(
+//                           builder: (context) {
+//                             return PaymentWebViewScreen(webViewDetailsModel: webViewDetailsModel);
+//                           },
+//                         ));
+//                       } else {
+//                         AppDialog.commonWarningDialog(
+//                             themeColor: widget.themeColor ?? AppColors.primaryColor,
+//                             useMobileLayout: useMobileLayout,
+//                             context: context,
+//                             title: "Issue".translate(),
+//                             subTitle:
+//                                 "Sorry, We are not able to process the transaction. Please try again.".translate(),
+//                             buttonOnTap: () {
+//                               Navigator.pop(context);
+//                               },
+//                             buttonText: "Okay".translate());
+//                       }
+//                     },
+//                     loadingIndicator: const Center(
+//                       child: CircularProgressIndicator(),
+//                     ),
+//                   ) : GooglePayButton(
+//                   height: useMobileLayout ? 50 : 65,
+//                   width: MediaQuery.of(context).size.width - (useMobileLayout ? 80 : 124),
+//                   paymentConfiguration: PaymentConfiguration.fromJsonString('''{
+//    "provider":"google_pay",
+//    "data":{
+//       "environment":"TEST",
+//       "apiVersion":2,
+//       "apiVersionMinor":0,
+//       "allowedPaymentMethods":[
+//          {
+//             "type":"CARD",
+//             "tokenizationSpecification":{
+//                "type":"PAYMENT_GATEWAY",
+//                "parameters":{
+//                   "gateway":"mpgs",
+//                   "gatewayMerchantId":"testSPSQNB01"
+//                }
+//             },
+//             "parameters":{
+//                "allowedCardNetworks":[
+//                   "VISA",
+//                   "MASTERCARD"
+//                ],
+//                "allowedAuthMethods":[
+//                   "PAN_ONLY",
+//                   "CRYPTOGRAM_3DS"
+//                ],
+//                "billingAddressRequired":false,
+//                "billingAddressParameters":{
+//                   "format":"FULL",
+//                   "phoneNumberRequired":true
+//                }
+//             }
+//          }
+//       ],
+//       "transactionInfo":{
+//          "countryCode":"QA",
+//          "currencyCode":"QAR"
+//       }
+//    }
+// }'''),
+//                   paymentItems: [
+//                     PaymentItem(
+//                       label: "Total".translate(),
+//                       amount: widget.amount.toString() ?? "",
+//                       status: PaymentItemStatus.final_price,
+//                       type: PaymentItemType.total,
+//                     )
+//                   ],
+//                   type: GooglePayButtonType.plain,
+//                   margin: EdgeInsets.symmetric(horizontal: useMobileLayout ? 20 : 62),
+//                   onPaymentResult: (result) async {
+//                     AppDialog.showProcess(context, widget.themeColor ?? primaryColor);
+//                     var tokenData = result["paymentMethodData"]["tokenizationData"]["token"];
+//                     String? ipAddress = await NetworkInfo().getWifiIPv6();
+//                     double amount = widget.amount ?? 0;
+//                     int finalamount = (amount * 100).toInt();
+//                     String cardHolderName = "" ?? "";
+//                     String firstName = "";
+//                     String lastName = "";
+//                     String country = "";
+//                     String emailId = widget.email ?? "";
+//                     String cellNo = widget.mobile ?? "";
+//                     //String checkSumLocal = checkSum;
+//                     // As per basecamp requirement remove checksum from Rishabh
+//                     String merchantID = userMetaPreference?.userId ?? ""; //"9246722"
+//                     String merchantSadadID = userMetaPreference?.user?.sadadId ?? ""; //"9246722";
+//                     var strProductDetails = jsonEncode(widget.productDetail);
+//                     strProductDetails = strProductDetails.replaceAll("(", "[");
+//                     strProductDetails = strProductDetails.replaceAll(")", "]");
+//                     strProductDetails = strProductDetails.replaceAll("\n", "");
+//                     var lang = selectedLanguage.languageCode == "en" ? "en" : "ar";
+//                     var postString =
+//                         "issandboxmode=${(widget.packageMode == PackageMode.debug) ? "1" : "0"}&isLanguage=$lang&website_ref_no_credit=${widget.orderId}&isFlutter=1&vpc_Version=1&mobileOS=${Platform.isIOS ? "1" : "2"}&vpc_Command=pay&paymentToken=$tokenData&walletProvider=GOOGLE_PAY&vpc_Merchant=DB93443&vpc_AccessCode=F4996AF0&vpc_OrderInfo=TestOrder&vpc_Amount=$finalamount&vpc_Currency=QAR&vpc_TicketNo=6AQ89F3&vpc_ReturnURL=https://sadad.de/bankapi/25/PHP_VPC_3DS2.5 Party_DR.php&vpc_Gateway=ssl&vpc_MerchTxnRef=${""}&credit_phoneno_hidden=$country&credit_email_hidden=$country&productamount=$finalamount&vendorId=$merchantID&merchant_code=$merchantSadadID&website_ref_no=$country&return_url=$country&transactionEntityId=9&ipAddress=$ipAddress&firstName=$firstName&lastName=$lastName&nameOnCard=$cardHolderName&email=$emailId&mobilePhone=$cellNo&productdetail=$strProductDetails&paymentCode=${widget.token}";
+//                     // var temp = CryptLib.instance.encryptPlainTextWithRandomIV(postString, "XDRvx?#Py^5V@3jC");
+//                     // String encodedString = base64.encode(utf8.encode(temp)).trim();
+//                     // var postString =
+//                     //     "is_Flutter=1&vpc_Version=1&deviceIp=$ipAddress&transactionmodeId=5&MID=${userMetaPreference?.user?.sadadId.toString() ?? userMetaPreference?.userId}&vpc_Command=pay&vpc_Merchant=${userMetaPreference?.user?.sadadId.toString()}&vpc_AccessCode=F4996AF0&vpc_MerchTxnRef=6AQ89F3&vpc_OrderInfo=Test Order&vpc_Amount=${widget.amount}&vpc_Currency=QAR&vpc_TicketNo=6AQ89F3&vpc_ReturnURL=https://sadad.de/bankapi/25/PHP_VPC_3DS 2.5 Party_DR.php&vpc_Gateway=ssl&vpc_MerchTxnRef=SD417921222270&transactionEntityId=9&email=demo@gmail.com&mobilePhone=9749898989898&city=&country=&walletProvider=GOOGLE_PAY&paymentToken=$tokenData&carduser_id=${userMetaPreference?.userId}";
+//                     var temp = CryptLib.instance.encryptPlainTextWithRandomIV(postString, "XDRvx?#Py^5V@3jC");
+//                     String encodedString = base64.encode(utf8.encode(temp)).trim();
+//
+//                     var htmlString2 = await AppServices.googlePayment(encrypt_string: encodedString);
+//                     // Map? htmlString = await AppServices.googlePayCompletion(
+//                     //   encodedString: encodedString,
+//                     //   googlePayURL: ApiEndPoint.googlePayWebRequest,
+//                     // );
+//                     Navigator.pop(context);
+//                     // if (htmlString == null) {
+//                     //   AppDialog.commonWarningDialog(
+//                     //       themeColor: widget.themeColor ?? AppColors.primaryColor,
+//                     //       useMobileLayout: useMobileLayout,
+//                     //       context: context,
+//                     //       title: "Issue".translate(),
+//                     //       subTitle:
+//                     //           "Sorry, We are not able to process the transaction. Please try again.".translate(),
+//                     //       buttonOnTap: () {
+//                     //         Navigator.pop(context);
+//                     //         Navigator.pop(context);
+//                     //       },
+//                     //       buttonText: "Okay".translate());
+//                     // } else {
+//                     //   if (htmlString["status"].toString() == "success") {
+//                     //webViewString = htmlString["msg"];
+//                     //webController.loadHtmlString(webViewString as String);
+//                     if (htmlString2.toString().contains("<div")) {
+//                       //if(true) {
+//                       WebViewDetailsModel webViewDetailsModel = WebViewDetailsModel(
+//                         themeColor: widget.themeColor ?? primaryColor,
+//                         merchantSadadId: userMetaPreference?.user?.sadadId,
+//                         checksum: checkSum,
+//                         merchantUserId: userMetaPreference?.userId,
+//                         cardHolderName: "cardholdername",
+//                         email: widget.email,
+//                         paymentMethod: "googlePay",
+//                         contactNumber: widget.mobile,
+//                         transactionAmount: widget.amount,
+//                         productDetail: widget.productDetail,
+//                         transactionId: "",
+//                         token: widget.token,
+//                         htmlString:htmlString2,//htmlString?["msg"],
+//                       );
+//                       Navigator.push(context, MaterialPageRoute(
+//                         builder: (context) {
+//                           return PaymentWebViewScreen(webViewDetailsModel: webViewDetailsModel);
+//                         },
+//                       ));
+//                     } else {
+//                       AppDialog.commonWarningDialog(
+//                           themeColor: widget.themeColor ?? AppColors.primaryColor,
+//                           useMobileLayout: useMobileLayout,
+//                           context: context,
+//                           title: "Issue".translate(),
+//                           subTitle:
+//                           "Sorry, We are not able to process the transaction. Please try again.".translate(),
+//                           buttonOnTap: () {
+//                             Navigator.pop(context);
+//                           },
+//                           buttonText: "Okay".translate());
+//                     }
+//                     // } else {
+//                     //   AppDialog.commonWarningDialog(
+//                     //       themeColor: widget.themeColor ?? AppColors.primaryColor,
+//                     //       useMobileLayout: useMobileLayout,
+//                     //       context: context,
+//                     //       title: "Issue".translate(),
+//                     //       subTitle: htmlString["msg"].toString(),
+//                     //       buttonOnTap: () {
+//                     //         Navigator.pop(context);
+//                     //         Navigator.pop(context);
+//                     //       },
+//                     //       buttonText: "Okay".translate());
+//                     // }
+//                     //}
+//                     //print("html String $htmlString");
+//                   },
+//                   loadingIndicator: const Center(
+//                     child: CircularProgressIndicator(),
+//                   ),
+//                 ),
           )
       ]),
     );

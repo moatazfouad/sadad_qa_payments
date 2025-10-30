@@ -14,7 +14,6 @@ dependencies:
   webview_flutter: ^4.13.0
   cryptlib_2_0: ^0.0.3
   network_info_plus: ^7.0.0
-  pay: ^3.2.1
   pinput: ^5.0.2
 
 dev_dependencies:
